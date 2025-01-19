@@ -14,4 +14,4 @@ Install the dependencies: `npm install`
 
 Replace the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with your own AWS credentials.
 
-Run the script: `node ./uploadFiles.js`
+Run the script: `npm start`
