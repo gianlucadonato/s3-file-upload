@@ -8,10 +8,10 @@ This code recursively uploads all the files inside the local directory `./files`
 
 ## Installation
 
-Install the dependencies: `npm install`
+- Install the dependencies: `npm install`
+- Rename the `.env.example` file to `.env`
+- Replace the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with your own AWS credentials.
 
 ## Usage
-
-Replace the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with your own AWS credentials.
 
 Run the script: `npm start`

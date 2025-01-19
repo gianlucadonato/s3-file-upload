@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node uploadFiles.js"
+    "start": "node --env-file=.env uploadFiles.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.731.1"

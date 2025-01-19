@@ -8,8 +8,8 @@ const FILES_FOLDER = path.join(__dirname, "./files");
 const s3Client = new S3Client({
   region: "eu-central-1",
   credentials: {
-    accessKeyId: "AWS_ACCESS_KEY_ID",
-    secretAccessKey: "AWS_SECRET_ACCESS_KEY",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -44,8 +44,10 @@ const uploadFilesToBucket = async ({ folderPath, bucketName }) => {
         Key: `${now}/${file.Key}`,
       })
     );
-    console.log(`${file.Key} uploaded successfully.`);
+    console.log(`${file.Key} - uploaded.`);
   }
+  console.log("\n✅ Done!");
+  console.log(`Uploaded ${files.length} files to ${bucketName}.`);
 };
 
 const main = async () => {
