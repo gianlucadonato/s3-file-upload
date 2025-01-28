@@ -1,4 +1,3 @@
-const path = require("node:path");
 const fs = require("node:fs");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { Client } = require("basic-ftp");
@@ -6,7 +5,10 @@ const { formatDistance } = require("date-fns");
 
 const NOW = new Date().toISOString().split("Z")[0];
 const BUCKET_NAME = "elmeteo";
-const FILES_FOLDERS = [
+const AWS_S3_FOLDERS = [
+  { localPath: "/Users/gian/Documents/folder1" },
+];
+const FTP_FOLDERS = [
   { localPath: "/Users/gian/Documents/folder1", remotePath: "folder1" },
   { localPath: "/Users/gian/Documents/folder2", remotePath: "folder2" },
   { localPath: "/Users/gian/Desktop/folder3", remotePath: "folder3" },
@@ -87,7 +89,7 @@ const uploadFilesToAmazonS3 = async () => {
   console.log("🚀 Uploading files to Amazon S3...");
   logs.amazonS3.startTime = new Date().toISOString();
   try {
-    for (const folderPath of FILES_FOLDERS) {
+    for (const folderPath of AWS_S3_FOLDERS) {
       await uploadFilesToBucket({
         bucketName: BUCKET_NAME,
         folderPath: folderPath.localPath,
@@ -100,12 +102,16 @@ const uploadFilesToAmazonS3 = async () => {
     logs.amazonS3.error = JSON.stringify(err, null, 2);
   } finally {
     logs.amazonS3.endTime = new Date().toISOString();
+    if (logs.amazonS3.startTime && logs.amazonS3.endTime) {
+      logs.amazonS3.duration = formatDistance(new Date(logs.amazonS3.startTime), new Date(logs.amazonS3.endTime));
+      console.log(`⏰ Upload duration: ${logs.amazonS3.duration}`);
+    }
     s3Client.destroy();
   }
 };
 
 const uploadFilesToFtp = async () => {
-  console.log("🚀 Uploading files via FTP...");
+  console.log("\n🚀 Uploading files via FTP...");
   logs.ftp.startTime = new Date().toISOString();
   try {
     await ftpClient.access({
@@ -114,7 +120,7 @@ const uploadFilesToFtp = async () => {
       password: process.env.FTP_PASSWORD,
       secure: true,
     });
-    for (const folderPath of FILES_FOLDERS) {
+    for (const folderPath of FTP_FOLDERS) {
       await ftpClient.uploadFromDir(folderPath.localPath, folderPath.remotePath);
       console.log(`✅ Upload ${folderPath.localPath} done!`);
     }
@@ -124,29 +130,26 @@ const uploadFilesToFtp = async () => {
     logs.ftp.error = JSON.stringify(err, null, 2);
   } finally {
     logs.ftp.endTime = new Date().toISOString();
+    if (logs.ftp.startTime && logs.ftp.endTime) {
+      logs.ftp.duration = formatDistance(new Date(logs.ftp.startTime), new Date(logs.ftp.endTime));
+      console.log(`⏰ Upload duration: ${logs.ftp.duration}`);
+    }
     ftpClient.close();
   }
 };
 
-function formatLogs() {
-  logs.endTime = new Date().toISOString();
-  logs.totalUploadedMegaBytes = (logs.totalBytes / (1024*1024)).toFixed(2) + " MB";
-  if (logs.amazonS3.startTime && logs.amazonS3.endTime) {
-    logs.amazonS3.duration = formatDistance(new Date(logs.amazonS3.startTime), new Date(logs.amazonS3.endTime));
-  }
-  if (logs.ftp.startTime && logs.ftp.endTime) {
-    logs.ftp.duration = formatDistance(new Date(logs.ftp.startTime), new Date(logs.ftp.endTime));
-  }
-  if (logs.startTime && logs.endTime) {
-    logs.duration = formatDistance(new Date(logs.startTime), new Date(logs.endTime));
-  }
-}
 
 const main = async () => {
   await uploadFilesToAmazonS3();
   await uploadFilesToFtp();
-  formatLogs();
+
+  logs.endTime = new Date().toISOString();
+  logs.totalUploadedMegaBytes = (logs.totalBytes / (1024*1024)).toFixed(2) + " MB";
+  if (logs.startTime && logs.endTime) {
+    logs.duration = formatDistance(new Date(logs.startTime), new Date(logs.endTime));
+  }
   console.log('\n🐞 > logs:', JSON.stringify(logs, null, 2));
+  // TODO: Send result via API
 };
 
 main();
