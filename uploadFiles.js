@@ -138,6 +138,25 @@ const uploadFilesToFtp = async () => {
   }
 };
 
+const sendLogsToAPI = async () => {
+  try {
+    const response = await fetch('https://www.vololiberomontegrappa.it/api/elmeteo', {
+      headers: {
+        'Authorization': `Bearer ${process.env.API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify(logs),
+    });
+    if (response.ok) {
+      console.log('Logs sent to API!');
+    } else {
+      console.error('Error sending logs to API');
+    }
+  } catch (err) {
+    console.error('Error sending logs to API:', err.message);
+  }
+}
 
 const main = async () => {
   await uploadFilesToAmazonS3();
@@ -149,7 +168,7 @@ const main = async () => {
     logs.duration = formatDistance(new Date(logs.startTime), new Date(logs.endTime));
   }
   console.log('\n🐞 > logs:', JSON.stringify(logs, null, 2));
-  // TODO: Send result via API
+  await sendLogsToAPI();
 };
 
 main();
